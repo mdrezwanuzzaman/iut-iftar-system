@@ -3,3 +3,7 @@ requests==2.31.0
 pyjwt==2.8.0
 werkzeug==2.3.7
 cachetools==5.3.1
+setuptools==68.2.2
+wheel==0.41.2
+coverage==7.3.2
+flask-cors==4.0.0
