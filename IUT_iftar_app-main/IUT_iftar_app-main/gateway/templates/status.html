@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .status-card {
+            background: rgba(255,255,255,0.08); backdrop-filter: blur(20px);
+            border-radius: 30px; padding: 40px; width: 90%; max-width: 800px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .order-header { text-align: center; margin-bottom: 40px; }
+        .order-id { color: #00ff9f; font-size: 48px; font-weight: bold; text-shadow: 0 0 20px #00ff9f; }
+        .timeline {
+            display: flex; justify-content: space-between; margin: 50px 0;
+            position: relative; padding: 20px 0;
+        }
+        .timeline::before {
+            content: ''; position: absolute; top: 45px; left: 50px; right: 50px;
+            height: 4px; background: rgba(255,255,255,0.2); z-index: 1;
+        }
+        .timeline-step { position: relative; z-index: 2; text-align: center; flex: 1; }
+        .step-dot {
+            width: 80px; height: 80px; background: rgba(255,255,255,0.1);
+            border-radius: 50%; margin: 0 auto 15px; display: flex;
+            align-items: center; justify-content: center; border: 3px solid rgba(255,255,255,0.2);
+            font-size: 32px; transition: all 0.5s ease;
+        }
+        .step-dot.pending { border-color: #ffd700; animation: blinkPending 1.5s infinite; }
+        .step-dot.stock { border-color: #00c6ff; animation: blinkStock 1.5s infinite; }
+        .step-dot.kitchen { border-color: #ff9f00; animation: blinkKitchen 1.5s infinite; }
+        .step-dot.ready { border-color: #00ff9f; animation: blinkReady 1.5s infinite; }
+        .step-dot.completed { background: #00ff9f; border-color: #00ff9f; animation: none; }
+        .step-dot.completed i { color: black; }
+        @keyframes blinkPending {
+            0% { box-shadow: 0 0 10px #ffd700; }
+            50% { box-shadow: 0 0 30px #ffd700; transform: scale(1.1); }
+        }
+        @keyframes blinkStock {
+            0% { box-shadow: 0 0 10px #00c6ff; }
+            50% { box-shadow: 0 0 30px #00c6ff; transform: scale(1.1); }
+        }
+        @keyframes blinkKitchen {
+            0% { box-shadow: 0 0 10px #ff9f00; }
+            50% { box-shadow: 0 0 30px #ff9f00; transform: scale(1.1); }
+        }
+        @keyframes blinkReady {
+            0% { box-shadow: 0 0 10px #00ff9f; }
+            50% { box-shadow: 0 0 30px #00ff9f; transform: scale(1.1); }
+        }
+        .step-label { color: white; font-size: 16px; font-weight: bold; }
+        .progress-container { margin: 30px 0; }
+        .progress-bar {
+            height: 10px; background: rgba(255,255,255,0.1);
+            border-radius: 5px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; width: 0%; background: linear-gradient(90deg, #00ff9f, #00c6ff);
+            transition: width 0.5s ease;
+        }
+        .order-details {
+            background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px;
+            margin: 30px 0; color: white;
+        }
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .action-buttons {
+            display: flex; gap: 20px; justify-content: center; margin-top: 30px;
+        }
+        .btn {
+            padding: 15px 40px; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            text-decoration: none; transition: 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #00ff9f, #00c6ff); color: #111;
+        }
+        .btn-secondary {
+            background: transparent; color: white; border: 2px solid rgba(255,255,255,0.3);
+        }
+        .btn-secondary:hover { border-color: #00ff9f; color: #00ff9f; }
+    </style>
+</head>
+<body>
+    <div class="status-card">
+        <div class="order-header">
+            <h1>Order Status</h1>
+            <div class="order-id" id="order-id">1001</div>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-step" id="step-pending">
+                <div class="step-dot" id="dot-pending">⏳</div>
+                <div class="step-label">Pending</div>
+            </div>
+            <div class="timeline-step" id="step-stock">
+                <div class="step-dot" id="dot-stock">📦</div>
+                <div class="step-label">Stock Verified</div>
+            </div>
+            <div class="timeline-step" id="step-kitchen">
+                <div class="step-dot" id="dot-kitchen">👨‍🍳</div>
+                <div class="step-label">In Kitchen</div>
+            </div>
+            <div class="timeline-step" id="step-ready">
+                <div class="step-dot" id="dot-ready">✅</div>
+                <div class="step-label">Ready</div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="progress-text" id="progress-text">0% Complete</div>
+        </div>
+
+        <div class="order-details">
+            <div class="detail-row"><span>Order ID:</span><span id="detail-id">1001</span></div>
+            <div class="detail-row"><span>Current Status:</span><span class="ready" id="detail-status">Pending</span></div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="window.location.href='/menu'">Back to Menu</button>
+            <button class="btn btn-primary" id="collect-btn" style="display: none;" onclick="window.location.href='/ready/'+orderId">Collect Order</button>
+        </div>
+    </div>
+
+    <script>
+        const orderId = window.location.pathname.split('/').pop();
+        document.getElementById('order-id').textContent = orderId;
+        document.getElementById('detail-id').textContent = orderId;
+
+        const statusMap = {
+            'Pending': 0, 'Stock Verified': 1, 'In Kitchen': 2, 'Ready': 3
+        };
+
+        function updateStatus(status, data) {
+            const currentIndex = statusMap[status] || 0;
+            const progress = ((currentIndex + 1) / 4) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('progress-text').textContent =
+                status === 'Ready' ? 'Order Ready!' : `${Math.round(progress)}% Complete`;
+
+            const steps = ['pending', 'stock', 'kitchen', 'ready'];
+            steps.forEach((step, index) => {
+                const dot = document.getElementById(`dot-${step}`);
+                dot.classList.remove('pending', 'stock', 'kitchen', 'ready', 'completed');
+                if (index < currentIndex) dot.classList.add('completed');
+                else if (index === currentIndex) dot.classList.add(step);
+            });
+
+            document.getElementById('detail-status').textContent = status;
+            document.getElementById('collect-btn').style.display = status === 'Ready' ? 'inline-block' : 'none';
+        }
+
+        function checkStatus() {
+            fetch(`/api/status/${orderId}`)
+                .then(res => res.json())
+                .then(data => data.status && updateStatus(data.status, data))
+                .catch(() => {});
+        }
+
+        checkStatus();
+        setInterval(checkStatus, 2000);
+    </script>
+</body>
+</html>

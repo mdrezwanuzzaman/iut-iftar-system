@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IUT Iftar Menu</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            min-height: 100vh; padding: 20px;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.08); backdrop-filter: blur(20px);
+            padding: 15px 30px; border-radius: 15px; margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-section img { width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 0 15px #00ff9f; }
+        .logo-section h1 { color: white; font-size: 24px; }
+        .budget-section {
+            background: rgba(0,255,159,0.15); padding: 10px 25px;
+            border-radius: 12px; border: 1px solid #00ff9f;
+        }
+        .budget-value { color: #00ff9f; font-size: 24px; font-weight: bold; }
+        .logout-btn {
+            background: rgba(255,75,75,0.2); color: #ff4d4d;
+            border: 1px solid #ff4d4d; padding: 8px 20px; border-radius: 8px;
+            cursor: pointer; font-weight: bold;
+        }
+        .logout-btn:hover { background: #ff4d4d; color: white; }
+        .header { text-align: center; margin: 40px 0; }
+        .header h2 { color: white; font-size: 48px; }
+        .time-badge {
+            background: rgba(0,255,159,0.1); color: #00ff9f;
+            padding: 8px 20px; border-radius: 25px; display: inline-block;
+            border: 1px solid #00ff9f;
+        }
+        .menu-container {
+            display: flex; gap: 30px; flex-wrap: wrap;
+            justify-content: center; max-width: 1200px; margin: 0 auto;
+        }
+        .menu-box {
+            background: rgba(255,255,255,0.08); backdrop-filter: blur(20px);
+            border-radius: 25px; width: 300px; padding: 30px;
+            color: white; text-align: center; transition: 0.5s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .menu-box:hover { transform: translateY(-10px); }
+        .menu-box.popular { border: 2px solid #00ff9f; box-shadow: 0 0 30px #00ff9f; }
+        .popular-badge {
+            position: absolute; top: -10px; right: 20px;
+            background: linear-gradient(90deg, #00ff9f, #00c6ff);
+            color: #111; padding: 5px 15px; border-radius: 20px;
+            font-weight: bold; display: none;
+        }
+        .menu-box h3 { font-size: 28px; margin-bottom: 15px; }
+        .price { color: #00ff9f; font-size: 24px; font-weight: bold; margin: 15px 0; }
+        .stock-bar-container {
+            background: rgba(255,255,255,0.1); height: 10px;
+            border-radius: 5px; overflow: hidden; margin: 10px 0;
+        }
+        .stock-fill {
+            height: 100%; width: 0%; background: linear-gradient(90deg, #00ff9f, #00c6ff);
+            transition: width 0.5s ease;
+        }
+        .timer-section {
+            background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;
+            margin: 15px 0;
+        }
+        .timer-value { color: #00c6ff; font-size: 20px; font-weight: bold; }
+        .order-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            background: linear-gradient(90deg, #00ff9f, #00c6ff);
+            color: #111; font-size: 18px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; margin-top: 20px;
+        }
+        .order-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 0 25px #00ff9f; }
+        .order-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(20px);
+            border-radius: 30px; padding: 40px; width: 90%; max-width: 450px;
+            border: 1px solid; animation: slideUp 0.3s ease;
+        }
+        .modal-content.confirm { border-color: #00ff9f; box-shadow: 0 0 50px #00ff9f; }
+        .modal-content.success { border-color: #00ff9f; box-shadow: 0 0 50px #00ff9f; }
+        .modal-content.error { border-color: #ff4d4d; box-shadow: 0 0 50px #ff4d4d; }
+        .modal-content.warning { border-color: #ffd700; box-shadow: 0 0 50px #ffd700; }
+        .modal-icon { font-size: 60px; text-align: center; margin-bottom: 20px; }
+        .modal-title { color: white; font-size: 28px; text-align: center; margin-bottom: 15px; }
+        .modal-details { background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; margin-bottom: 30px; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .detail-label { color: rgba(255,255,255,0.7); }
+        .detail-value.price { color: #00ff9f; font-weight: bold; }
+        .modal-buttons { display: flex; gap: 15px; }
+        .modal-btn {
+            flex: 1; padding: 15px; border: none; border-radius: 15px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+        .modal-btn.cancel { background: transparent; border: 2px solid rgba(255,255,255,0.2); color: white; }
+        .modal-btn.confirm { background: linear-gradient(90deg, #00ff9f, #00c6ff); color: black; }
+        .modal-btn.ok { background: linear-gradient(90deg, #00ff9f, #00c6ff); color: black; width: 100%; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo-section">
+            <img src="/static/logo.jpg" alt="Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22 viewBox=%220 0 50 50%22><circle cx=%2225%22 cy=%2225%22 r=%2225%22 fill=%22%2300ff9f%22/><text x=%2225%22 y=%2235%22 font-size=%2230%22 text-anchor=%22middle%22 fill=%22black%22>🍽️</text></svg>'">
+            <h1>IUT Iftar</h1>
+        </div>
+        <div class="budget-section">
+            <span>Your Budget: </span><span class="budget-value" id="user-budget">0</span> BDT
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="header">
+        <h2>IUT IFTAR MENU</h2>
+        <p class="subtitle">Select your platter below</p>
+        <div class="time-badge" id="current-time"></div>
+    </div>
+
+    <div class="menu-container">
+        <div class="menu-box" data-platter="1" id="platter1">
+            <div class="popular-badge" id="popular1">🔥 POPULAR</div>
+            <h3>Platter 1</h3>
+            <div>Dates • Juice • Khichuri</div>
+            <div class="price">120 BDT</div>
+            <div class="stock-bar-container"><div class="stock-fill" id="stock1"></div></div>
+            <div id="stock-text1">Stock: Loading...</div>
+            <div class="timer-section"><div>Preparation Time</div><div class="timer-value" id="timer1">-- min</div></div>
+            <button class="order-btn" id="order-btn1" onclick="order(1)">Order Now</button>
+        </div>
+        <div class="menu-box" data-platter="2" id="platter2">
+            <div class="popular-badge" id="popular2">🔥 POPULAR</div>
+            <h3>Platter 2</h3>
+            <div>Chicken • Rice • Salad</div>
+            <div class="price">180 BDT</div>
+            <div class="stock-bar-container"><div class="stock-fill" id="stock2"></div></div>
+            <div id="stock-text2">Stock: Loading...</div>
+            <div class="timer-section"><div>Preparation Time</div><div class="timer-value" id="timer2">-- min</div></div>
+            <button class="order-btn" id="order-btn2" onclick="order(2)">Order Now</button>
+        </div>
+        <div class="menu-box" data-platter="3" id="platter3">
+            <div class="popular-badge" id="popular3">🔥 POPULAR</div>
+            <h3>Platter 3</h3>
+            <div>Beef • Polao • Dessert</div>
+            <div class="price">250 BDT</div>
+            <div class="stock-bar-container"><div class="stock-fill" id="stock3"></div></div>
+            <div id="stock-text3">Stock: Loading...</div>
+            <div class="timer-section"><div>Preparation Time</div><div class="timer-value" id="timer3">-- min</div></div>
+            <button class="order-btn" id="order-btn3" onclick="order(3)">Order Now</button>
+        </div>
+    </div>
+
+    <script>
+        const student_id = localStorage.getItem("student");
+        const token = localStorage.getItem("token");
+        if (!student_id || !token) window.location.href = "/";
+
+        const platters = {
+            1: { name: "Platter 1", price: 120 },
+            2: { name: "Platter 2", price: 180 },
+            3: { name: "Platter 3", price: 250 }
+        };
+
+        function updateCurrentTime() {
+            document.getElementById('current-time').textContent = `🕐 ${new Date().toLocaleTimeString()}`;
+        }
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+
+        function loadBudget() {
+            fetch(`/api/budget/${student_id}`, { headers: { 'Authorization': 'Bearer ' + token } })
+                .then(r => r.json()).then(d => document.getElementById("user-budget").textContent = d.budget || 0)
+                .catch(() => document.getElementById("user-budget").textContent = "0");
+        }
+
+        function loadPlatterStock(platterId) {
+            fetch(`/api/stock/${platterId}`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById(`stock${platterId}`).style.width = (data.stock / data.max_stock * 100) + '%';
+                    document.getElementById(`stock-text${platterId}`).textContent = `Stock: ${data.stock || 0}`;
+                    document.getElementById(`timer${platterId}`).textContent = (data.prep_time || 5) + ' min';
+                    if (data.popular) {
+                        document.getElementById(`popular${platterId}`).style.display = 'block';
+                        document.getElementById(`platter${platterId}`).classList.add('popular');
+                    }
+                })
+                .catch(() => {
+                    document.getElementById(`stock${platterId}`).style.width = '50%';
+                    document.getElementById(`stock-text${platterId}`).textContent = 'Stock: --';
+                });
+        }
+
+        function loadAllPlatters() { for (let i = 1; i <= 3; i++) loadPlatterStock(i); }
+
+        function showModal(options) {
+            const existing = document.querySelector('.modal-overlay');
+            if (existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+
+            if (options.type === 'confirm') {
+                modal.innerHTML = `
+                    <div class="modal-content confirm">
+                        <div class="modal-icon">🍽️</div>
+                        <h2 class="modal-title">Confirm Order</h2>
+                        <div class="modal-details">
+                            <div class="detail-row"><span class="detail-label">Item:</span><span>${options.platter.name}</span></div>
+                            <div class="detail-row"><span class="detail-label">Price:</span><span class="detail-value price">${options.platter.price} BDT</span></div>
+                            <div class="detail-row"><span class="detail-label">Your Budget:</span><span>${document.getElementById('user-budget').textContent} BDT</span></div>
+                        </div>
+                        <div class="modal-buttons">
+                            <button class="modal-btn cancel" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                            <button class="modal-btn confirm" onclick="placeOrder(${options.platterId}); this.closest('.modal-overlay').remove()">Confirm</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const colors = { success: '#00ff9f', error: '#ff4d4d', warning: '#ffd700' };
+                const icons = { success: '✅', error: '❌', warning: '⚠️' };
+                modal.innerHTML = `
+                    <div class="modal-content ${options.type}" style="border-color: ${colors[options.type]}; box-shadow: 0 0 50px ${colors[options.type]};">
+                        <div class="modal-icon">${icons[options.type]}</div>
+                        <h2 class="modal-title">${options.title}</h2>
+                        <div class="modal-details">${options.message}</div>
+                        <button class="modal-btn ok" onclick="this.closest('.modal-overlay').remove()">OK</button>
+                    </div>
+                `;
+            }
+            document.body.appendChild(modal);
+        }
+
+        function order(platterId) {
+            const platter = platters[platterId];
+            const budget = parseInt(document.getElementById("user-budget").textContent) || 0;
+            const stockText = document.getElementById(`stock-text${platterId}`).textContent;
+            const stock = parseInt(stockText.match(/\d+/)?.[0] || 0);
+
+            if (stock <= 0) {
+                showModal({ type: 'error', title: 'Out of Stock', message: 'Sorry, this item is out of stock!' });
+                return;
+            }
+            if (budget < platter.price) {
+                showModal({ type: 'warning', title: 'Insufficient Budget', message: `Need ${platter.price - budget} more BDT` });
+                return;
+            }
+            showModal({ type: 'confirm', platterId, platter });
+        }
+
+        async function placeOrder(platterId) {
+            const btn = document.getElementById(`order-btn${platterId}`);
+            const original = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Placing Order...";
+
+            try {
+                const res = await fetch("/api/order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                    body: JSON.stringify({ platter: platterId, student_id })
+                });
+                const data = await res.json();
+                if (res.ok && data.order_id) {
+                    showModal({ type: 'success', title: 'Order Placed!', message: `Order #${data.order_id} placed!` });
+                    loadBudget();
+                    loadPlatterStock(platterId);
+                    setTimeout(() => window.location.href = "/status/" + data.order_id, 1500);
+                } else throw new Error(data.error || "Order failed");
+            } catch (error) {
+                showModal({ type: 'error', title: 'Order Failed', message: error.message });
+                btn.disabled = false;
+                btn.textContent = original;
+            }
+        }
+
+        function logout() { if (confirm("Logout?")) { localStorage.clear(); window.location.href = "/"; } }
+
+        loadBudget();
+        loadAllPlatters();
+        setInterval(() => { loadBudget(); loadAllPlatters(); }, 30000);
+    </script>
+</body>
+</html>

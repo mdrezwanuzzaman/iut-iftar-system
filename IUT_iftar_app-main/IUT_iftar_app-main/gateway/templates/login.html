@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iftar Login - IUT</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container { width: 100%; max-width: 450px; }
+        .login-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .logo-section { text-align: center; margin-bottom: 40px; }
+        .logo-img {
+            width: 120px; height: 120px; margin: 0 auto 20px;
+            border-radius: 50%; overflow: hidden;
+            border: 3px solid #00ff9f; box-shadow: 0 0 30px #00ff9f;
+        }
+        .logo-img img { width: 100%; height: 100%; object-fit: cover; }
+        h1 { color: white; font-size: 32px; margin-bottom: 10px; }
+        .subtitle { color: rgba(255,255,255,0.7); font-size: 16px; }
+        .input-group { margin-bottom: 25px; position: relative; }
+        .input-icon {
+            position: absolute; left: 15px; top: 50%;
+            transform: translateY(-50%); font-size: 20px; color: #00ff9f;
+        }
+        .login-input {
+            width: 100%; padding: 18px 18px 18px 50px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px; color: white; font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .login-input:focus {
+            outline: none; border-color: #00ff9f;
+            box-shadow: 0 0 20px rgba(0,255,159,0.3);
+        }
+        .login-btn {
+            width: 100%; padding: 18px; border: none; border-radius: 15px;
+            background: linear-gradient(90deg, #00ff9f, #00c6ff);
+            color: #111; font-size: 18px; font-weight: bold;
+            cursor: pointer; transition: 0.3s; margin-top: 20px;
+        }
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-3px); box-shadow: 0 10px 30px #00ff9f;
+        }
+        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .timer-display {
+            margin-top: 20px; padding: 15px;
+            background: rgba(255,215,0,0.1); border: 1px solid #ffd700;
+            border-radius: 10px; display: none;
+        }
+        .timer-display.visible { display: block; }
+        .timer-text { color: #ffd700; text-align: center; }
+        .cooldown-progress {
+            width: 100%; height: 4px;
+            background: rgba(255,215,0,0.3); border-radius: 2px;
+            margin-top: 10px; overflow: hidden;
+        }
+        .cooldown-bar {
+            height: 100%; width: 0%; background: #ffd700;
+            transition: width 1s linear;
+        }
+        .error-message {
+            color: #ff4d4d; font-size: 14px; margin-top: 10px;
+            text-align: center; padding: 10px;
+            background: rgba(255,75,75,0.1); border: 1px solid #ff4d4d;
+            border-radius: 10px; display: none;
+        }
+        .error-message.visible { display: block; }
+        .service-status {
+            margin-top: 30px; padding: 15px;
+            background: rgba(0,0,0,0.3); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; font-size: 14px;
+        }
+        .status-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #ff4d4d; animation: pulse 1.5s infinite;
+        }
+        .status-dot.online { background: #00ff9f; box-shadow: 0 0 15px #00ff9f; }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .footer { margin-top: 30px; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; }
+        .loading-spinner {
+            display: inline-block; width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%; border-top-color: #00ff9f;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-section">
+                <div class="logo-img">
+                    <img src="/static/logo.jpg" alt="IUT Iftar Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22 viewBox=%220 0 120 120%22><circle cx=%2260%22 cy=%2260%22 r=%2260%22 fill=%22%2300ff9f%22/><text x=%2260%22 y=%2280%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22black%22>🍽️</text></svg>'">
+                </div>
+                <h1>Iftar Portal</h1>
+                <div class="subtitle">Islamic University of Technology</div>
+            </div>
+
+            <div class="input-group">
+                <span class="input-icon">👤</span>
+                <input type="text" class="login-input" id="student_id" placeholder="Student ID" value="">
+            </div>
+
+            <div class="input-group">
+                <span class="input-icon">🔒</span>
+                <input type="password" class="login-input" id="password" placeholder="Password" value="">
+            </div>
+
+            <button class="login-btn" id="loginBtn" onclick="login()">
+                <span id="btnText">Login to Iftar</span>
+                <span id="btnLoader" style="display: none;"><span class="loading-spinner"></span></span>
+            </button>
+
+            <div class="timer-display" id="timerDisplay">
+                <div class="timer-text">⏳ Too many attempts. Please wait <span id="timerSeconds">30</span>s</div>
+                <div class="cooldown-progress"><div class="cooldown-bar" id="cooldownBar"></div></div>
+            </div>
+
+            <div class="error-message" id="error"></div>
+
+            <div class="service-status" id="serviceStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking service status...</span>
+            </div>
+
+            <div class="footer">© 2026 IUT Iftar System | All rights reserved</div>
+        </div>
+    </div>
+
+    <script>
+        let loginAttempts = 0, isBlocked = false, blockTimer = null;
+        const MAX_ATTEMPTS = 3, BLOCK_TIME = 30;
+
+        localStorage.removeItem('token');
+        localStorage.removeItem('student');
+        document.getElementById('student_id').focus();
+
+        function checkServiceStatus() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            fetch('http://127.0.0.1:5001/health')
+                .then(r => r.ok ? (dot.className = 'status-dot online', text.textContent = 'Identity Service Online ✓') :
+                    (dot.className = 'status-dot', text.textContent = 'Identity Service Unavailable'))
+                .catch(() => (dot.className = 'status-dot', text.textContent = 'Identity Service Unavailable'));
+        }
+        checkServiceStatus();
+        setInterval(checkServiceStatus, 10000);
+
+        function startBlockTimer() {
+            isBlocked = true; loginAttempts = 0;
+            const loginBtn = document.getElementById('loginBtn');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const timerSeconds = document.getElementById('timerSeconds');
+            const cooldownBar = document.getElementById('cooldownBar');
+
+            loginBtn.disabled = true;
+            timerDisplay.classList.add('visible');
+
+            let timeLeft = BLOCK_TIME;
+            blockTimer = setInterval(() => {
+                timeLeft--;
+                timerSeconds.textContent = timeLeft;
+                cooldownBar.style.width = ((BLOCK_TIME - timeLeft) / BLOCK_TIME * 100) + '%';
+                if (timeLeft <= 0) {
+                    clearInterval(blockTimer);
+                    isBlocked = false;
+                    loginBtn.disabled = false;
+                    timerDisplay.classList.remove('visible');
+                    cooldownBar.style.width = '0%';
+                }
+            }, 1000);
+        }
+
+        function login() {
+            if (isBlocked) return;
+
+            const student_id = document.getElementById('student_id').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('error');
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+
+            if (!student_id || !password) {
+                errorDiv.textContent = 'Please enter both Student ID and Password';
+                errorDiv.classList.add('visible');
+                return;
+            }
+
+            loginAttempts++;
+            if (loginAttempts >= MAX_ATTEMPTS) {
+                startBlockTimer();
+                errorDiv.textContent = `Too many failed attempts. Please wait ${BLOCK_TIME} seconds.`;
+                errorDiv.classList.add('visible');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.style.opacity = '0.5';
+            btnLoader.style.display = 'inline-block';
+            errorDiv.classList.remove('visible');
+
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id, password })
+            })
+            .then(response => {
+                if (response.status === 429) return response.json().then(d => { throw { rate_limited: true, message: d.error }; });
+                if (!response.ok) return response.json().then(err => { throw err; });
+                return response.json();
+            })
+            .then(data => {
+                if (data.token) {
+                    loginAttempts = 0;
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('student', student_id);
+                    localStorage.setItem('budget', data.budget || 500);
+                    btn.style.background = '#00ff9f';
+                    btnText.textContent = 'Login Successful!';
+                    setTimeout(() => window.location.href = '/menu', 500);
+                }
+            })
+            .catch(error => {
+                if (error.rate_limited) {
+                    startBlockTimer();
+                    errorDiv.textContent = error.message;
+                } else {
+                    errorDiv.textContent = error.error || 'Login failed. Please try again.';
+                }
+                errorDiv.classList.add('visible');
+                btn.disabled = false;
+                btnText.style.opacity = '1';
+                btnLoader.style.display = 'none';
+                checkServiceStatus();
+            });
+        }
+
+        document.getElementById('password').addEventListener('keypress', e => { if (e.key === 'Enter') login(); });
+        document.getElementById('student_id').addEventListener('input', () => document.getElementById('error').classList.remove('visible'));
+        document.getElementById('password').addEventListener('input', () => document.getElementById('error').classList.remove('visible'));
+    </script>
+</body>
+</html>

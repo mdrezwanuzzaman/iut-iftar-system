@@ -1,0 +1,33 @@
+IUT_iftar_app-main/
+├── gateway/
+│   ├── app.py
+│   ├── static/
+│   │   ├── logo.jpg
+│   │   ├── style.css
+│   │   └── app.js
+│   └── templates/
+│       ├── login.html
+│       ├── menu.html
+│       ├── status.html
+│       ├── ready.html
+│       └── admin.html
+├── identity_service/
+│   ├── app.py
+│   ├── init_db.py
+│   └── __init__.py
+├── order_service/
+│   ├── app.py
+│   └── __init__.py
+├── kitchen_service/
+│   ├── app.py
+│   └── __init__.py
+├── stock_service/
+│   ├── app.py
+│   └── __init__.py
+├── tests/
+│   ├── __init__.py
+│   └── test_order.py
+├── run.py
+├── start_all.bat
+├── requirements.txt
+└── README.md
